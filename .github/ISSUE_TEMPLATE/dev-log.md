@@ -1,5 +1,5 @@
 ---
-name: Dev-Log Markdown Template
+name: dev-log
 about: Suggest an idea for this project
 title: "[✍️ Dev Log ] 박유빈 2021-0#-##"
 labels: ''
