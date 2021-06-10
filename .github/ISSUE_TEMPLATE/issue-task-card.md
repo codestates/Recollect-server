@@ -1,9 +1,9 @@
 ---
 name: issue-task-card
 about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
+title: "[Server] "
+labels: backend
+assignees: Justicexx0099
 
 ---
 
