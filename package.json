@@ -23,8 +23,15 @@
     "express-session": "^1.17.2",
     "morgan": "^1.10.0",
     "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
     "nodemon": "^2.0.7",
     "sequelize": "^6.6.2",
+    "sequelize-auto": "^0.8.3",
     "sequelize-cli": "^6.2.0"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "http": "^0.0.1-security"
   }
 }
