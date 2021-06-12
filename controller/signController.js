@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const uuid = require('uuid');
 const { Users } = require('../models');
 const {
   generateAccessToken,
@@ -14,6 +15,7 @@ const clientSecret = process.env.GITHUB_CLIENT_SECRET;
 const axios = require('axios');
 
 
+
 //TODO: API문서 응답 메세지 수정 필요
 
 module.exports = {
@@ -25,7 +27,7 @@ module.exports = {
     await Users.findOrCreate({
       where: { username },
       //! uuid필드 생성 
-      defaults: { username: username, uuid: uuid(), email: email || null, password: password || null, isSocialAccount: isSocialAccount, socialId: socialId || null }
+      defaults: { username: username, uuid: uuid.v1() , email: email || null, password: password || null, isSocialAccount: isSocialAccount, socialId: socialId || null }
     })
     .then(([result, created]) => {
       if(!created) {
@@ -40,6 +42,7 @@ module.exports = {
       })
     })
     .catch((err) => {
+      console.log(uuid.v1());
       res.status(422).send('Insufficient Information');
     })
   },

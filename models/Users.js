@@ -7,6 +7,10 @@ module.exports = function(sequelize, DataTypes) {
       allowNull: false,
       primaryKey: true
     },
+    uuid: {
+      type: DataTypes.CHAR(36),
+      allowNull: false
+    },
     username: {
       type: DataTypes.STRING(20),
       allowNull: true
