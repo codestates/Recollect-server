@@ -27,31 +27,5 @@ module.exports = function(sequelize, DataTypes) {
     sequelize,
     tableName: 'Bookmark_Emojis',
     timestamps: false,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
-      },
-      {
-        name: "Bookmark_Emojis_unique",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "bookmarkId" },
-          { name: "emojiId" },
-        ]
-      },
-      {
-        name: "Bookmark_Emojis_Bookmark",
-        using: "BTREE",
-        fields: [
-          { name: "emojiId" },
-        ]
-      },
-    ]
   });
 };

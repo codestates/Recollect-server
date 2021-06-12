@@ -32,22 +32,5 @@ module.exports = function(sequelize, DataTypes) {
     sequelize,
     tableName: 'Bookmarks',
     timestamps: true,
-    indexes: [
-      {
-        name: "PRIMARY",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "id" },
-        ]
-      },
-      {
-        name: "userId",
-        using: "BTREE",
-        fields: [
-          { name: "userId" },
-        ]
-      },
-    ]
   });
 };
