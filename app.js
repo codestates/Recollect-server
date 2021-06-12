@@ -1,11 +1,11 @@
-const express = require('express');
-const session = require('express-session');
-const cookieParser = require('cookie-parser');
-const cors = require('cors');
-const logger = require('morgan');
-const dotenv = require('dotenv');
+const express = require("express");
+const session = require("express-session");
+const cookieParser = require("cookie-parser");
+const cors = require("cors");
+const logger = require("morgan");
+const dotenv = require("dotenv");
 
-const routes = require('./routes/index');
+const routes = require("./routes/index");
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -14,29 +14,28 @@ const PORT = process.env.PORT;
 const app = express();
 
 //app.use를 통해서 익스프레스에 미들웨어를 연결
-app.use(logger('dev'));
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//TODO: 환경설정 필요 
+//TODO: 환경설정 필요
 app.use(
   session({
-  secret: '@collecting',
-  resave: false,
-  saveUninitialized: true
-}));
+    secret: "@collecting",
+    resave: false,
+    saveUninitialized: true,
+  })
+);
 app.use(cookieParser());
 const corsOptions = {
   origin: true,
   credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE', 'OPTIONS'],
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
   preflightContinue: true,
-}
+};
 app.use(cors(corsOptions));
 
-
 //TODO: 라우팅 분기-controller 함수랑 연결 필요
-app.use('/', routes);
-
+app.use("/", routes);
 
 module.exports = app.listen(PORT, () => {
   console.log(`🚀 Server is starting on ${PORT}`);
