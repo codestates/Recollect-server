@@ -1,32 +1,27 @@
-'use strict';
-
-const fs = require('fs');
+var fs = require('fs');
 const path = require('path');
 const Sequelize = require('sequelize');
-const basename = path.basename(__filename);
+
 const env = process.env.NODE_ENV || 'development';
-const config = require(__dirname + '/../config/config.js')[env];
+const config = require(path.join(__dirname, '..', 'config', 'config.js'))[env];
 const db = {};
 
-let sequelize;
-if (config.use_env_variable) {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config);
-}
+const sequelize = new Sequelize(config.database, config.username, config.password, config);
 
 fs
   .readdirSync(__dirname)
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js');
+  .filter(function(file) {
+    return (file.indexOf(".") !== 0) && (file !== "index.js");
   })
-  .forEach(file => {
+  .forEach(function(file) {
     const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
     db[model.name] = model;
+    // ! 배포할 때 삭제 해야 함 
+    console.log('model.name:' + model.name);  
   });
 
-Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
+Object.keys(db).forEach(function(modelName) {
+  if ("associate" in db[modelName]) {
     db[modelName].associate(db);
   }
 });
