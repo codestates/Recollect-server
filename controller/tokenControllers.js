@@ -7,10 +7,12 @@ const refreshDecrypt = process.env.REFRESH_SECRET;
 //* 토큰 타임스탬프 확인(jwt)
 module.exports = {
   generateAccessToken: (data) => {
-    return jwt.sign(data, accessDecrypt, { expireIn: '1h' });
+    console.log(data);
+    return jwt.sign(data, accessDecrypt, { expiresIn: '1h' });
   },
   generateRefreshToken: (data) => {
-    return jwt.sign(data, refreshDecrypt, { expireIn: '14d' });
+    console.log(data);
+    return jwt.sign(data, refreshDecrypt, { expiresIn: '14d' });
   },
   sendAccessToken: (res, accessToken, data) => {
     res.status(200).send({
@@ -25,6 +27,7 @@ module.exports = {
     //TODO: refreshToken cookie 보안옵션 설정
     res.cookie('refreshToken', refreshToken);
   },
+
   //* mypage에서 오게되는 요청 컨트롤러 
   resendAccessToken: (res, accessToken, data) => {
     res.send({
