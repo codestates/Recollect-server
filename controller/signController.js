@@ -2,34 +2,33 @@ require("dotenv").config();
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
-const uuid = require('uuid');
-const { Users } = require('../models');
+const uuid = require("uuid");
+const { Users } = require("../models");
 
 // const {
 //   sendAccessToken,
 //   sendRefreshToken,
 // } = require('./tokenControllers');
 
-require('dotenv').config();
+require("dotenv").config();
 const accessDecrypt = process.env.ACCESS_SECRET;
 const refreshDecrypt = process.env.REFRESH_SECRET;
 const clientID = process.env.GITHUB_CLIENT_ID;
 const clientSecret = process.env.GITHUB_CLIENT_SECRET;
-const axios = require('axios');
+const axios = require("axios");
 
 const generateAccessToken = (data) => {
-  return jwt.sign(data, accessDecrypt, {expiresIn: '1h'});
-}
+  return jwt.sign(data, accessDecrypt, { expiresIn: "1h" });
+};
 const generateRefreshToken = (data) => {
-  return jwt.sign(data, refreshDecrypt, {expiresIn: '14d'});
-}
+  return jwt.sign(data, refreshDecrypt, { expiresIn: "14d" });
+};
 
 //TODO: API문서 응답 메세지 수정 필요
 
 module.exports = {
-
-//*회원가입컨트롤러
-  signUpController: async(req, res) => {
+  //*회원가입컨트롤러
+  signUpController: async (req, res) => {
     //! TODO: client에서 req.body에 socialId 넣었는 지 확인(API 문서 수정)
     const { isSocialAccount, password, email, username } = req.body;
     const { socialId } = req.body.socialId;
@@ -37,43 +36,58 @@ module.exports = {
     if(isSocialAccount === 1) {
       await Users.findOrCreate({
         where: { username },
-        defaults: {uuid: uuid.v1(), username: username, email: null, password: null, isSocialAccount: isSocialAccount, socialId: socialId }
+        defaults: {
+          uuid: uuid.v1(),
+          username: username,
+          email: null,
+          password: null,
+          isSocialAccount: isSocialAccount,
+          socialId: socialId,
+        },
       })
-      .then(([result, created]) => {
-        if(!created) {
-          res.status(409).send('Already Exist');
-        }
-        res.status(201).send({
-          data: {
-            userInfo: result.dataValues
-          },
-          message: 'Sign Up Successfully'
+        .then(([result, created]) => {
+          if (!created) {
+            res.status(409).send("Already Exist");
+          }
+          res.status(201).send({
+            data: {
+              userInfo: result.dataValues,
+            },
+            message: "Sign Up Successfully",
+          });
         })
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(422).send('Insufficient Information');
-      })
+        .catch((err) => {
+          console.error(err);
+          res.status(422).send("Insufficient Information");
+        });
     } else {
       await Users.findOrCreate({
-      where: { email},
-      defaults: { uuid: uuid.v1(), username: username, uuid: uuid.v1() , email: email , password: password, isSocialAccount: isSocialAccount, socialId: null}
-    })
-    .then(([result, created]) => {
-      if(!created) {
-        res.status(409).send('Already Exist');
-      }
-      res.status(201).send({
-        data: {
-          userInfo : result.dataValues
+        where: { email },
+        defaults: {
+          uuid: uuid.v1(),
+          username: username,
+          uuid: uuid.v1(),
+          email: email,
+          password: password,
+          isSocialAccount: isSocialAccount,
+          socialId: null,
         },
-        message: 'Sign Up Successfully'
       })
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(422).send('Insufficient Information');
-    })
+        .then(([result, created]) => {
+          if (!created) {
+            res.status(409).send("Already Exist");
+          }
+          res.status(201).send({
+            data: {
+              userInfo: result.dataValues,
+            },
+            message: "Sign Up Successfully",
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(422).send("Insufficient Information");
+        });
     }
   },
 
@@ -155,10 +169,10 @@ module.exports = {
   getTokenController: (req, res) => { 
     console.log("      🔍REQUEST CHECK🔍    ",req.body.authorizationCode);
     axios({
-      method: 'post',
-      url: 'https://github.com/login/oauth/access_token',
+      method: "post",
+      url: "https://github.com/login/oauth/access_token",
       headers: {
-        accept: 'application/json',
+        accept: "application/json",
       },
       data: {
         client_id: `75d98169bb09be4ab543`,
@@ -179,6 +193,22 @@ module.exports = {
     }).catch((err) => {
       res.status(404).send(err);
     })
+      .then((result) => {
+        const accessToken = result.data.access_token;
+        const refreshToken = result.data.refresh_token;
+        console.log("        💡GITHUB DATA💡       ", result.cookie);
+        console.log("ACCESS TOKEN: ", accessToken);
+        console.log("REFRESH TOKEN: ", refreshToken);
+        res.status(200).send({
+          data: {
+            accessToken,
+            refreshToken,
+          },
+        });
+      })
+      .catch((err) => {
+        res.status(404).send(err);
+      });
   },
 
  //* 소셜로그인 한 유저가 회원인지 판별 컨트롤러(/logcheck)
@@ -186,7 +216,7 @@ module.exports = {
     console.log('확인용:',req.body);
     const { socialId } = req.body;
     await Users.findOne({
-      where: { socialId }
+      where: { socialId },
     })
     .then((result) => {
       if(!result) {
@@ -212,9 +242,7 @@ module.exports = {
     } else {
       req.session.destroy();
       //! TODO: 응답메세지 변경했음(API문서 수정 필요)
-      res.status(205).send('Log out Succeeded');
+      res.status(205).send("Log out Succeeded");
     }
   },
-}
-  
-
+};
