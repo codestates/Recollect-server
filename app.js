@@ -17,7 +17,7 @@ const app = express();
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-//TODO: 환경설정 필요 
+//TODO: Cookie 환경설정 필요 
 app.use(
   session({
   secret: '@collecting',
@@ -28,8 +28,7 @@ app.use(cookieParser());
 const corsOptions = {
   origin: true,
   credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE', 'OPTIONS'],
-  preflightContinue: true,
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE', 'OPTIONS']
 }
 app.use(cors(corsOptions));
 
