@@ -4,7 +4,6 @@ const { Users } = require('../models');
 const { Bookmark } = require('../models');
 
 // TODO: Access token에 있는 resource server를 확인하는 endpoint
-// TODO: app.get('/images', handleImages)
 // TODO : Mypage로부터 access token을 제대로 받아온 것이 맞다면, resource를 클라이언트로 보내야함
 
 
@@ -26,7 +25,7 @@ module.exports =  {
     }
   },
   //* accessToken
-//TODO: Mypage에서 accessToken 요청 
+//! TODO: Mypage에서 accessToken 요청 
   accessTokenController: (req, res) => {
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
@@ -36,11 +35,8 @@ module.exports =  {
     User.findOne({ where: {}})
   },
     //* refreshToken
-//TODO: Mypage에서 refreshToken 요청
-
-
-
-
+//! TODO: Mypage에서 refreshToken 요청
+////
 }
 
 
