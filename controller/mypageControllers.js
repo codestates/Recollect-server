@@ -1,5 +1,5 @@
 
-const { isAuthorized } = require('./tokenControllers');
+const { isAuthorized, checkRefreshToken } = require('./tokenControllers');
 const { Users, sequelize } = require('../models');
 const { Bookmarks } = require('../models');
 const { Bookmark_Emojis } = require('../models');
@@ -7,21 +7,25 @@ const { Bookmark_Emojis } = require('../models');
 // TODO: Access token에 있는 resource server를 확인하는 endpoint
 // TODO : Mypage로부터 access token을 제대로 받아온 것이 맞다면, resource를 클라이언트로 보내야함
 //! emoji를 보내줄때는 그냥 '1,2,3'과 같이 보내줘야 배열 형태로 변환 작업이 가능해짐
+//! req.headers.Authorization
+
 
 module.exports =  {
   //* 회원이 갖고 있는 Bookmark정보를 전달(GET "/mypage")
   renderingController: async(req, res) => {
-    //TODO: myPage에서 req.body에 userId 넣어서 보내줘야 함-!!!
-    const { username } = req.body;
-    if(!req.headers.authorization) {
-      res.status(403).send({
-        message: 'no permission to access resources'
+    //TODO: POSTMAN으로 확인!!
+     // **sessionID로 유저정보 확인
+     //! myPage 처음에 accessToken 유효한지 다시 확인 해주기 
+    const { uuid } = req.session.userId;
+    if(!req.headers.Authorization) {
+      res.status(401).send({
+        message: 'invalid access token'
       })
       return;
     } else {
       //TODO: 해당 유저가 갖고있는 북마크크를 모두 전송
       const foundResult = await Users.findOne({
-        where: { username }
+        where: { uuid }
       });
       console.log(foundResult);
       const user = foundResult.dataValues;
@@ -46,18 +50,16 @@ module.exports =  {
       .catch((err) => {
         console.error(err);
         res.status(500).send({
-          message: 'Failed To Load'
+          message: 'failed'
         })
       })
     }
   },
   //* bookmark 추가하는 작업(POST "/mypage")
+  //! 401 response code add
   collectController: async(req, res) => {
     const {username, desc, url, emoji } = req.body;
     const emojiArr = emoji.split(',');
-    console.log(`이모지 데이터 형태를 확인합니다 ${emojiArr}`);
-    //TODO: emoji 전송 형태를 확인할 필요가 있음
-    /* emoji = '1,2,3'; */
     const foundResult = await Users.findOne({
       where: { username }
     });
@@ -73,14 +75,22 @@ module.exports =  {
     if(newBookmark !== undefined) {
        //*bookmark의 id필드 값을 알아내야 함 -> Bookmark_Emojis table에 데이터 추가
         const bookmarkId = newBookmark.dataValues.id;
-        
-        await Bookmark_Emojis.create({
-          bookmarkId: bookmarkId,
-          emojiId: `${emoji[0]}`
-        })
-        .then((result) => {
+        //! logDev에 작성
+        const insertData = (async(id) => {
+          await Bookmark_Emojis.create({
+            bookmarkId: bookmarkId,
+            emojiId: id
+          })
+        });
+        await Promise.all(
+          emojiArr.map( (id) => {
+            return insertData(id);
+          })
+        )
+        .then(() => {
           res.status(201).send({
             message: 'Created Successfully'
+
           })
         })
         .catch((err) => {
@@ -96,10 +106,10 @@ module.exports =  {
       })
     }
   },
-  //* Bookmark 삭제 요청(DELETE "/mypage")
+  //* Bookmark 삭제 요청(PATCH "/bookmark")
   deleteBookmarkController: async(req, res) => {
     const { bookmarkId } = req.body;
-    if(!req.headers.authorization) {
+    if(!req.headers.Authorization) {
       res.status(401).send({
         message: 'Not Allowed'
       });
@@ -107,7 +117,7 @@ module.exports =  {
       await Bookmarks.destroy({
         where: { id: bookmarkId }
       })
-      .then((result) => {
+      .then(() => {
         res.status(200).send({
           message: 'Deleted Successfully'
         })
@@ -115,19 +125,20 @@ module.exports =  {
       .catch((err) => {
         console.error(err);
         res.status(501).send({
-          message: 'Failed to delete'
+          message: 'Failed To Delete'
         })
       })
     }
   },
-  //* Bookmark 수정 요청(PATCH "/mypage")
+  //* Bookmark 수정 요청(PUT "/mypage")
   updateBookmarkController: async(req, res) => {
-    const { bookmarkId, desc, url, emoji, username } = req.body;
-    if(!req.headers.authorization) {
+    const { bookmarkId, desc, url, emoji } = req.body;
+    if(!req.headers.Authorization) {
       res.status(401).send({
         message: 'Not Allowed'
       })
     } else {
+      //! emoji === undefined 인 경우에는 delete 작업 필요 
       await Bookmarks.update({
         url: url,
         desc: desc
@@ -136,7 +147,7 @@ module.exports =  {
           id: bookmarkId
         }
       })
-      .then((result) => {
+      .then(() => {
         res.status(200).send({
           message: 'Edited Successfully'
         })
@@ -153,13 +164,21 @@ module.exports =  {
   accessTokenController: (req, res) => {
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
-      return res.send('invalid access token');
+      return res.status(401).send('invalid access token');
     }
     const { } = accessTokenData;
     Users.findOne({ where: {}})
   },
   //* refreshToken
   refreshTokenController: (req, res) => {
+    //req.cookie.refreshToken
+    const refreshTokenData = checkRefreshToken(req);
+    if(!refreshTokenData) {
+      return res.status(401).send('invalid refresh token');
+    } else {
+      //* 다시 accessToken 만들어서 보내줌
+      //* 만약 오류면 
+    }
   }
 }
 
