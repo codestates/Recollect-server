@@ -9,17 +9,17 @@ module.exports = function(sequelize, DataTypes) {
     },
     bookmarkId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
-        model: 'Emojis',
+        model: 'Bookmarks',
         key: 'id'
       }
     },
     emojiId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       references: {
-        model: 'Bookmarks',
+        model: 'Emojis',
         key: 'id'
       }
     }
@@ -27,5 +27,29 @@ module.exports = function(sequelize, DataTypes) {
     sequelize,
     tableName: 'Bookmark_Emojis',
     timestamps: false,
+    indexes: [
+      {
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "id" },
+        ]
+      },
+      {
+        name: "bookmarkId",
+        using: "BTREE",
+        fields: [
+          { name: "bookmarkId" },
+        ]
+      },
+      {
+        name: "emojiId",
+        using: "BTREE",
+        fields: [
+          { name: "emojiId" },
+        ]
+      },
+    ]
   });
 };
