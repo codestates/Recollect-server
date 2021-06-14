@@ -30,17 +30,14 @@ module.exports = {
 
   //* mypage에서 오게되는 요청 컨트롤러 
   resendAccessToken: (res, accessToken, data) => {
-    res.send({
-      data: {
-        accessToken,
-        data
-      },
+    req.headers.Authorization = accessToken;
+    res.status(200).send({
       message: 'ok'
     });
   },
   isAuthorized: (req) => {
     //TODO: headers.authorization
-    const authorization = req.headers.authorization;
+    const authorization = req.headers.Authorization;
     if (!authorization) {
       return null;
     }

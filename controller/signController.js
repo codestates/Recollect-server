@@ -56,10 +56,6 @@ module.exports = {
             message: "Sign Up Successfully",
           });
         })
-        .catch((err) => {
-          console.error(err);
-          res.status(422).send("Insufficient Information");
-        });
     } else {
       await Users.findOrCreate({
         where: { email },
@@ -75,7 +71,9 @@ module.exports = {
       })
         .then(([result, created]) => {
           if (!created) {
-            res.status(409).send("Already Exist");
+            res.status(409).send({
+              message: "Already Exist"
+            });
           }
           res.status(201).send({
             data: {
@@ -86,7 +84,9 @@ module.exports = {
         })
         .catch((err) => {
           console.log(err);
-          res.status(422).send("Insufficient Information");
+          res.status(422).send({
+            message: "Insufficient Information"
+          });
         });
     }
   },
@@ -97,7 +97,6 @@ module.exports = {
     const { email, password, uuid } = req.body;
     const { sessionID } = req;
     // 회원가입하고 로그인 할 때는 uuid로 전송 
-    // sessionID 
     if(!sessionID) {
       //*로그인이 되지 않은 경우
       if( uuid === undefined ) {
@@ -112,12 +111,11 @@ module.exports = {
             const accessToken = generateAccessToken(result.dataValues)
             const refreshToken = generateRefreshToken(result.dataValues);
             req.session.save( () => {
-              //! session.userId에 uuid 활용
               req.session.userId = result.dataValues.uuid;
+              req.headers.Authorization = accessToken;
               res.cookie('refreshToken', refreshToken);
               res.status(200).send({
                 data: {
-                  accessToken,
                   username: result.dataValues.username
                 },
                 message: 'Login Successfully'
@@ -132,16 +130,10 @@ module.exports = {
           if(!result) {
             res.status(401).send('Login Failed');
           } else {
-            // TODO: accessToken과 refreshToken 생성
-            // TODO: req.session.userId 에 uuid 입력
-            // TODO: accessToken과 refreshToken 전송
-            // ! 엑세스 토큰을 뭘로 암호화 할건지? uuid로 암호화 한다 
             delete result.dataValues.password;
             const accessToken = generateAccessToken(result.dataValues.uuid);
             const refreshToken = generateRefreshToken(result.dataValues.uuid);
-      
             req.session.save( () => {
-              //! session.userId에 uuid 활용
               req.session.userId = result.dataValues.uuid;
               res.cookie('refreshToken', refreshToken);
               res.status(200).send({
@@ -154,11 +146,6 @@ module.exports = {
             });
           }
       })
-      .catch((err) => {
-        console.error(err);
-        res.cookie('refreshToken', refreshToken);
-        res.status(422).send('Insufficient Information');
-      });
     }      
   } else {
     //*로그인이 된 경우
@@ -167,7 +154,6 @@ module.exports = {
 },
  //* 소셜로그인 할 때 프론트에서 authorizationCode를 전송해주면 accessToken을 깃허브로부터 받아서 전송해준다
   getTokenController: (req, res) => { 
-    console.log("      🔍REQUEST CHECK🔍    ",req.body.authorizationCode);
     axios({
       method: "post",
       url: "https://github.com/login/oauth/access_token",
@@ -179,36 +165,20 @@ module.exports = {
         client_secret: `4f2722a9eccf0a07b2b8670c5727e88b865ad9fe`,
         code: req.body.authorizationCode
       }
-    }).then((result) => {
+    })
+    .then((result) => {
       const accessToken = result.data.access_token;
-      console.log("        💡GITHUB DATA💡       ", result.data);
-      console.log("ACCESS TOKEN: ", accessToken);
-      // res.cookie('accessToken', accessToken);
-      // res.status(200).send();
+      const refreshToken = result.data.refresh_token;
       res.status(200).send({
         data: {
-          accessToken
-        }
+          accessToken,
+          refreshToken,
+        },
       });
-    }).catch((err) => {
+    })
+    .catch((err) => {
       res.status(404).send(err);
     })
-      .then((result) => {
-        const accessToken = result.data.access_token;
-        const refreshToken = result.data.refresh_token;
-        console.log("        💡GITHUB DATA💡       ", result.cookie);
-        console.log("ACCESS TOKEN: ", accessToken);
-        console.log("REFRESH TOKEN: ", refreshToken);
-        res.status(200).send({
-          data: {
-            accessToken,
-            refreshToken,
-          },
-        });
-      })
-      .catch((err) => {
-        res.status(404).send(err);
-      });
   },
 
  //* 소셜로그인 한 유저가 회원인지 판별 컨트롤러(/logcheck)
@@ -237,12 +207,15 @@ module.exports = {
 
   //* 로그아웃 컨트롤러
   logoutController: (req, res) => {
-    if(!req.headers.authorization) {
-      res.status(403).send('Log Out Failed');
+    if(!req.headers.Authorization) {
+      res.status(403).send({
+        message:'invalid access token'
+      });
     } else {
       req.session.destroy();
-      //! TODO: 응답메세지 변경했음(API문서 수정 필요)
-      res.status(205).send("Log out Succeeded");
+      res.status(205).send({
+        message: "Log out Succeeded"
+      });
     }
   },
 };
