@@ -12,11 +12,12 @@ function initModels(sequelize) {
   var SequelizeMeta = _SequelizeMeta(sequelize, DataTypes);
   var Users = _Users(sequelize, DataTypes);
 
-  Bookmarks.belongsToMany(Emojis, {  as: "bookmarkId", through: Bookmark_Emojis });
-  Emojis.belongsToMany(Emojis, {  as: "emojiId", through: Bookmark_Emojis });
-
-  Bookmarks.belongsTo(Users, { foreignKey: "userId"});
-  Users.hasMany(Bookmarks, { foreignKey: "userId"});
+  Bookmark_Emojis.belongsTo(Bookmarks, { as: "bookmark", foreignKey: "bookmarkId"});
+  Bookmarks.hasMany(Bookmark_Emojis, { as: "Bookmark_Emojis", foreignKey: "bookmarkId"});
+  Bookmark_Emojis.belongsTo(Emojis, { as: "emoji", foreignKey: "emojiId"});
+  Emojis.hasMany(Bookmark_Emojis, { as: "Bookmark_Emojis", foreignKey: "emojiId"});
+  Bookmarks.belongsTo(Users, { as: "user", foreignKey: "userId"});
+  Users.hasMany(Bookmarks, { as: "Bookmarks", foreignKey: "userId"});
 
   return {
     Bookmark_Emojis,

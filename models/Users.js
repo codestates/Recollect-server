@@ -35,5 +35,15 @@ module.exports = function(sequelize, DataTypes) {
     sequelize,
     tableName: 'Users',
     timestamps: true,
+    indexes: [
+      {
+        name: "PRIMARY",
+        unique: true,
+        using: "BTREE",
+        fields: [
+          { name: "id" },
+        ]
+      },
+    ]
   });
 };
