@@ -5,6 +5,7 @@ const router = express.Router();
 const uuid = require("uuid");
 const { Users } = require("../models");
 
+
 const {
   generateAccessToken,
   generateRefreshToken,
@@ -23,10 +24,11 @@ const processOfLogin = (req, res, result) => {
     delete result.dataValues.password;
     const accessToken = generateAccessToken(result.dataValues)
     const refreshToken = generateRefreshToken(result.dataValues);
-    return req.session.save( () => {
+    console.log(accessToken);
+    req.session.save(()=>{
       req.session.userId = result.dataValues.uuid;
       res.setHeader('Authorization', `Bearer ${accessToken}`);
-      res.cookie('refreshToken', refreshToken);
+      res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 24 * 6 * 60 * 10000,secure: true, sameSite:'none'});
       res.status(200).send({
         data: {
           username: result.dataValues.username
@@ -56,7 +58,7 @@ module.exports = {
   //*회원가입컨트롤러
   signUpController: async (req, res) => {
     const { isSocialAccount, password, email, username } = req.body;
-    const { socialId } = req.body.socialId;
+    const  socialId  = req.body.socialId;
     if(isSocialAccount === 1) {
       const [result, created] = await Users.findOrCreate({
         where: { socialId },
@@ -95,7 +97,6 @@ module.exports = {
           where: { email, password}
         });
         processOfLogin(req, res, result);
-          
       } else {
         const result = await Users.findOne({
           where: { uuid }
@@ -112,6 +113,7 @@ module.exports = {
  //* 소셜로그인 할 때 프론트에서 authorizationCode를 전송해주면 accessToken을 깃허브로부터 받아서 전송해준다
  //! API문서에 추가가 안되어 있음 
   getTokenController: (req, res) => { 
+    console.log(req.body.authorizationCode);
     axios({
       method: 'post',
       url: 'https://github.com/login/oauth/access_token',
@@ -119,16 +121,17 @@ module.exports = {
         accept: 'application/json',
       },
       data: {
-        client_id: `${clientID}`,
-        client_secret: `${clientSecret}`,
+        client_id: `749cea90f0ee8535f1fa`,
+        client_secret: `dd32ef6bef3293b42cde199d6a968bf3f5375200`,
         code: req.body.authorizationCode
       }
     })
     .then((result) => {
       const accessToken = result.data.access_token;
-      //! github accessToken도 data에 그대로 보내는 지 확인!
+      console.log('확인', result);
       res.setHeader('Authorization', `Bearer ${accessToken}`);
       res.status(200).send({
+        data: `${accessToken}`,
         message: 'ok'
       });
     })

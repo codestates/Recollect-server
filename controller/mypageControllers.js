@@ -10,7 +10,8 @@ const {
 module.exports =  {
   //* 회원이 갖고 있는 Bookmark정보를 전달(GET "/mypage")
   renderingController: async(req, res) => {
-    console.log(req.session);
+    console.log('세션로그확인', req.session);
+    console.log('check', req)
     const uuid = req.session.userId;
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
@@ -27,11 +28,11 @@ module.exports =  {
       const userId = foundResult.dataValues.id;
       let query = `SELECT Bookmarks.id, Bookmarks.url, Bookmarks.visitCounts, Bookmarks.descrip, Bookmarks.createdAt, Bookmarks.updatedAt, Bookmarks.userId, Emojis.icon FROM Bookmarks
       JOIN Bookmark_Emojis 
-      ON Bookmark_Emojis.emojiId  IN (SELECT id FROM Emojis)
+      ON Bookmark_Emojis.bookmarkId = Bookmarks.id
       JOIN Emojis 
       ON Emojis.id = Bookmark_Emojis.emojiId 
       WHERE Bookmarks.userId = ${userId}
-      ORDER BY id ASC`;
+      ORDER BY id ASC;`;
       await sequelize.query(query)
       .then(([result, metadata]) => {
         console.log('가져온 결과값을 확인', metadata);
@@ -53,7 +54,7 @@ module.exports =  {
   //* bookmark 추가하는 작업(POST "/mypage")
   collectController: async(req, res) => {
     const {username, desc, url, emoji } = req.body;
-    const emojiArr = emoji.split(',');
+    const emojiArr = emoji.split('');
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
       return res.status(401).send({
@@ -138,8 +139,8 @@ module.exports =  {
   //* Bookmark 수정 요청(PUT "/mypage")
   updateBookmarkController: async(req, res) => {
     const { bookmarkId, desc, url, emoji } = req.body;
-    console.log("길이확인", emoji.length);
-    const emojiArr = emoji.split(',');
+    console.log("길이확인", emoji);
+    const emojiArr = emoji.split('');
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
       return res.status(401).send({
@@ -202,8 +203,9 @@ module.exports =  {
   },
   //* refreshToken
   refreshTokenController: async(req, res) => {
-    const { uuid } = req.session.userId;
-    const refreshTokenData = checkRefreshToken(req.cookie.refreshToken);
+    const uuid  = req.session.userId;
+    console.log('리프레시토큰확인', req.cookies);
+    const refreshTokenData = checkRefreshToken(req.cookies.refreshToken);
     if(!refreshTokenData) {
       return res.status(401).send('invalid refresh token');
     } else {

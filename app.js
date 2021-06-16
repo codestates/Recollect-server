@@ -1,6 +1,8 @@
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
+const https = require('https');
+const fs = require('fs');
 const cors = require("cors");
 const logger = require("morgan");
 const dotenv = require("dotenv");
@@ -27,13 +29,20 @@ app.use(
     secret: "@collecting",
     resave: false,
     saveUninitialized: true,
+    cookie: {
+      sameSite: 'none',
+      maxAge: 24 * 6 * 60 * 10000,
+      httpOnly: true,
+      secure: true
+    }
   })
 );
 app.use(cookieParser());
 const corsOptions = {
   origin: true,
   credentials: true,
-  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE', 'OPTIONS']
+  methods: ['GET','HEAD','PUT','PATCH','POST','DELETE', 'OPTIONS'],
+  exposedHeaders: ['*', 'Authorization']
 }
 app.use(cors(corsOptions));
 app.use(methodOverride('_method'));
@@ -51,9 +60,21 @@ app.patch('/profile', (req, res, next) => {
   editProfileController(req,res);
   next();
 
-})
-
-
-module.exports = app.listen(PORT, () => {
-  console.log(`🚀 Server is starting on ${PORT}`);
 });
+
+let server;
+if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {
+  server = https
+    .createServer(
+      {
+        key: fs.readFileSync(__dirname + `/` + 'key.pem', 'utf-8'),
+        cert: fs.readFileSync(__dirname + `/` + 'cert.pem', 'utf-8'),
+      },
+      app
+    )
+    .listen(PORT);
+} else {
+  server = app.listen(PORT)
+}
+
+module.exports = server;

@@ -21,7 +21,7 @@ module.exports = {
   },
   isAuthorized: (req) => {
     const authorization = req.headers.authorization;
-    console.log("확인작업:", authorization);
+    console.log("확인작업:", req.headers);
     if (!authorization) {
       return null;
     }

@@ -3,6 +3,7 @@ const { isAuthorized } = require('./tokenControllers');
 
 module.exports = {
   addVisitCountsController: async(req, res) => {
+    console.log('북마크아이디확인', req.body);
     const id = req.body.bookmarkId;
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
