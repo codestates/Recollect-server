@@ -25,7 +25,8 @@ module.exports = function(sequelize, DataTypes) {
     },
     isSocialAccount: {
       type: DataTypes.BOOLEAN,
-      allowNull: true
+      allowNull: true,
+      defaultValue: false
     },
     socialId: {
       type: DataTypes.INTEGER,
