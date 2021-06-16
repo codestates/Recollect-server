@@ -38,7 +38,9 @@
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "http": "^0.0.1-security",
+    "https": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
-    "npm": "^7.16.0"
+    "npm": "^7.16.0",
+    "session-file-store": "^1.5.0"
   }
 }

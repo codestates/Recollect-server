@@ -18,26 +18,27 @@ module.exports = {
       const user = await Users.findOne({
         where: { uuid }
       });
-      const query = `SELECT Bookmarks.id, Bookmarks.url, Bookmarks.visitCounts, Bookmarks.descrip, Bookmarks.createdAt, Bookmarks.updatedAt, Bookmarks.userId, Emojis.icon FROM Bookmarks
+      const query = `SELECT Bookmarks.id, Bookmarks.url, Bookmarks.visitCounts, Bookmarks.descrip, Bookmarks.createdAt, Bookmarks.updatedAt, Bookmarks.userId, Emojis.icon FROM Bookmarks 
       JOIN Bookmark_Emojis 
-      ON Bookmark_Emojis.emojiId  IN (SELECT id FROM Emojis)
+      ON Bookmark_Emojis.bookmarkId = Bookmarks.id
       JOIN Emojis 
-      ON Emojis.id = Bookmark_Emojis.emojiId 
+      ON Bookmark_Emojis.emojiId = Emojis.id
       WHERE Bookmarks.userId = ${user.dataValues.id} AND Bookmarks.visitCounts = 0
       ORDER BY id ASC;`;
-      await sequelize.query(query)
-      .then((result) => {
+      const [results, metadata] = await sequelize.query(query);
+      if(!metadata) {
+        res.status.send({
+          message: 'Cannot Find'
+        });
+      } else {
+        console.log(metadata);
         res.status(200).send({
           data: {
             user,
-            bookmark: result
+            bookmark: metadata
           }
         })
-      })
-    .catch((err) => {
-      console.error(err);
-      res.status(500).send('Cannot Find');
-    })
+      }
     }
   }
 }

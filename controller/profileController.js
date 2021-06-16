@@ -85,7 +85,8 @@ module.exports = {
   },
   //* DELETE '/profile'
   deleteAccountController: async(req, res) => {
-    const { uuid } = req.session.userId;
+    console.log('uuid:   ', req);
+    const uuid  = req.session.userId;
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
       res.status(401).send({
