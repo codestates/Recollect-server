@@ -5,6 +5,7 @@
     "accesstokenrequest",
     "collectoradmin",
     "descrip",
+    "getrefreshtoken",
     "logcheck",
     "refreshtokenrequest",
     "resave"

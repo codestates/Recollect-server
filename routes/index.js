@@ -12,8 +12,6 @@ const {
   renderingController,
   collectController,
   deleteBookmarkController,
-  updateBookmarkController,
-  accessTokenController,
   refreshTokenController,
 } = require('../controller/mypageControllers');
 
@@ -25,7 +23,6 @@ const {
 
 const { getRecollectController } = require('../controller/recollectControllers');
 
-const { addVisitCountController } = require('../controller/bookmarkController');
 
 const emojiController = require('../controller/emoji');
 const homeController = require('../controller/home');
@@ -42,9 +39,8 @@ router.post('/getToken', getTokenController);
 router.get('/mypage', renderingController);
 router.post('/mypage', collectController);
 router.patch('/mypage', deleteBookmarkController);
-router.put('/mypage', updateBookmarkController);
 
-router.put('/bookmark', addVisitCountController);
+router.get('/getrefreshtoken', refreshTokenController);
 
 router.get('/recollect', getRecollectController);
 

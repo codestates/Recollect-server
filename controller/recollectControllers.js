@@ -1,17 +1,14 @@
-// req.session.id 에서 uuid 추출해서 Users를 가질 수 있다 
-// count가 0인 모든 북마크를 전송
-// delete Password 
-
 const { 
   Users,
   sequelize
 } = require('../models');
 
-const { isAuthorized } = require('../controller');
+const { isAuthorized } = require('../controller/tokenControllers');
 
 module.exports = {
   getRecollectController: async(req, res) => {
-    const { uuid } = req.session.userId;
+    const  uuid  = req.session.userId;
+    console.log("uuid를 확인해봅니다", req.session);
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
       res.status(401).send({
@@ -28,12 +25,12 @@ module.exports = {
       ON Emojis.id = Bookmark_Emojis.emojiId 
       WHERE Bookmarks.userId = ${user.dataValues.id} AND Bookmarks.visitCounts = 0
       ORDER BY id ASC;`;
-      const bookmark = await sequelize.query(query)
+      await sequelize.query(query)
       .then((result) => {
         res.status(200).send({
           data: {
             user,
-            bookmark
+            bookmark: result
           }
         })
       })

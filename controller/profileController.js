@@ -1,12 +1,11 @@
 const { Users } = require('../models');
-const { accessTokenController } = require('./mypageControllers');
 const { isAuthorized } = require('./tokenControllers');
 
 
 module.exports = {
   //* GET '/profile' 
   getProfileController: async(req, res) => {
-    const { uuid } = req.session.userId;
+    const uuid = req.session.userId;
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
       res.status(401).send({
@@ -35,8 +34,8 @@ module.exports = {
   },
   //* PATCH '/profile'
   editProfileController: async(req, res) => {
-    const { username, password }
-    const { uuid } = req.session.userId;
+    const { username, password } = req.body;
+    const  uuid  = req.session.userId;
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
       res.status(401).send({
@@ -44,12 +43,23 @@ module.exports = {
       })
     } else {
       //* password 값의 존재 여부에 따라서 update 필드 작업이 다름 
-      password ? (
+      password !== undefined ? (
         await Users.update({
           username,
           password
         }, {
           where: { uuid }
+        })
+        .then((result) => {
+          res.status(200).send({
+            message: 'Edited Successfully'
+          })
+        })
+        .catch((err) => {
+          console.error(err);
+          res.status(501).send({
+            message: 'Failed To Edit'
+          })
         })
       ) : (
         await Users.update({
@@ -57,25 +67,27 @@ module.exports = {
         }, {
           where: { uuid }
         })
+        .then((result) => {
+          res.status(200).send({
+            message: 'Edited Successfully'
+          })
+        })
+        .catch((err) => {
+          console.error(err);
+          res.status(501).send({
+            message: 'Failed To Edit'
+          })
+        })
       )
-      .then((result) => {
-        res.status(200).send({
-          message: 'Edited Successfully'
-        })
-      })
-      .catch((err) => {
-        console.error(err);
-        res.status(501).send({
-          message: 'Failed To Edit'
-        })
-      })
+      
+    
     }
   },
   //* DELETE '/profile'
   deleteAccountController: async(req, res) => {
     const { uuid } = req.session.userId;
     const accessTokenData = isAuthorized(req);
-    if(!accessTokenController) {
+    if(!accessTokenData) {
       res.status(401).send({
         message: 'not allowed'
       })

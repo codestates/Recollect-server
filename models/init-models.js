@@ -12,8 +12,6 @@ function initModels(sequelize) {
   var SequelizeMeta = _SequelizeMeta(sequelize, DataTypes);
   var Users = _Users(sequelize, DataTypes);
 
-  Bookmark_Emojis.belongsTo(Bookmarks, { as: "bookmark", foreignKey: "bookmarkId"});
-  Bookmarks.hasMany(Bookmark_Emojis, { as: "Bookmark_Emojis", foreignKey: "bookmarkId"});
   Bookmark_Emojis.belongsTo(Emojis, { as: "emoji", foreignKey: "emojiId"});
   Emojis.hasMany(Bookmark_Emojis, { as: "Bookmark_Emojis", foreignKey: "emojiId"});
   Bookmarks.belongsTo(Users, { as: "user", foreignKey: "userId"});

@@ -9,11 +9,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     bookmarkId: {
       type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: 'Bookmarks',
-        key: 'id'
-      }
+      allowNull: true
     },
     emojiId: {
       type: DataTypes.INTEGER,

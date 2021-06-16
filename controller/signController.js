@@ -5,179 +5,137 @@ const router = express.Router();
 const uuid = require("uuid");
 const { Users } = require("../models");
 
-// const {
-//   sendAccessToken,
-//   sendRefreshToken,
-// } = require('./tokenControllers');
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  isAuthorized
+} = require('./tokenControllers');
 
 require("dotenv").config();
-const accessDecrypt = process.env.ACCESS_SECRET;
-const refreshDecrypt = process.env.REFRESH_SECRET;
 const clientID = process.env.GITHUB_CLIENT_ID;
 const clientSecret = process.env.GITHUB_CLIENT_SECRET;
 const axios = require("axios");
 
-const generateAccessToken = (data) => {
-  return jwt.sign(data, accessDecrypt, { expiresIn: "1h" });
-};
-const generateRefreshToken = (data) => {
-  return jwt.sign(data, refreshDecrypt, { expiresIn: "14d" });
-};
+const processOfLogin = (req, res, result) => {
+  if(!result) {
+    return res.status(401).send('Login Failed');
+  } else {
+    delete result.dataValues.password;
+    const accessToken = generateAccessToken(result.dataValues)
+    const refreshToken = generateRefreshToken(result.dataValues);
+    return req.session.save( () => {
+      req.session.userId = result.dataValues.uuid;
+      res.setHeader('Authorization', `Bearer ${accessToken}`);
+      res.cookie('refreshToken', refreshToken);
+      res.status(200).send({
+        data: {
+          username: result.dataValues.username
+        },
+        message: 'Login Successfully'
+      });
+    });
+  }
+}
 
-//TODO: API문서 응답 메세지 수정 필요
+const processOfSignUp = (res, result, created) => {
+  if(!created) {
+    return res.status(409).send({
+      message: 'Already Exists'
+    });
+  } else {
+    return res.status(201).send({
+      data: {
+        userInfo: result.dataValues
+      },
+      message: 'Sign Up Successfully'
+    })
+  }
+};
 
 module.exports = {
   //*회원가입컨트롤러
   signUpController: async (req, res) => {
-    //! TODO: client에서 req.body에 socialId 넣었는 지 확인(API 문서 수정)
     const { isSocialAccount, password, email, username } = req.body;
     const { socialId } = req.body.socialId;
-    console.log(req.body.socialId.socialId);
     if(isSocialAccount === 1) {
-      await Users.findOrCreate({
-        where: { username },
+      const [result, created] = await Users.findOrCreate({
+        where: { socialId },
         defaults: {
           uuid: uuid.v1(),
           username: username,
-          email: null,
-          password: null,
           isSocialAccount: isSocialAccount,
-          socialId: socialId,
-        },
-      })
-        .then(([result, created]) => {
-          if (!created) {
-            res.status(409).send("Already Exist");
-          }
-          res.status(201).send({
-            data: {
-              userInfo: result.dataValues,
-            },
-            message: "Sign Up Successfully",
-          });
-        })
+          socialId: socialId
+        }
+      });
+      return processOfSignUp(res, result, created);
     } else {
-      await Users.findOrCreate({
+      const [result, created] = await Users.findOrCreate({
         where: { email },
         defaults: {
           uuid: uuid.v1(),
           username: username,
-          uuid: uuid.v1(),
           email: email,
           password: password,
-          isSocialAccount: isSocialAccount,
-          socialId: null,
+          isSocialAccount: isSocialAccount
         },
-      })
-        .then(([result, created]) => {
-          if (!created) {
-            res.status(409).send({
-              message: "Already Exist"
-            });
-          }
-          res.status(201).send({
-            data: {
-              userInfo: result.dataValues,
-            },
-            message: "Sign Up Successfully",
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-          res.status(422).send({
-            message: "Insufficient Information"
-          });
-        });
+      }); 
+      return processOfSignUp(res, result, created);
     }
   },
-
 //*로그인컨트롤러
   logInController: async(req, res) => {
-    console.log(req);
     const { email, password, uuid } = req.body;
-    const { sessionID } = req;
+    const { userId } = req.session;
     // 회원가입하고 로그인 할 때는 uuid로 전송 
-    if(!sessionID) {
+    if(!userId) {
       //*로그인이 되지 않은 경우
       if( uuid === undefined ) {
         //*비소셜 로그인
-          const result =  await Users.findOne({
-            where: { email, password }
-          });
-          if(!result) {
-            res.status(401).send('Login Failed');
-          } else {
-            delete result.dataValues.password;
-            const accessToken = generateAccessToken(result.dataValues)
-            const refreshToken = generateRefreshToken(result.dataValues);
-            req.session.save( () => {
-              req.session.userId = result.dataValues.uuid;
-              req.headers.Authorization = accessToken;
-              res.cookie('refreshToken', refreshToken);
-              res.status(200).send({
-                data: {
-                  username: result.dataValues.username
-                },
-                message: 'Login Successfully'
-              });
-            });
-          }
+        const result = await Users.findOne({
+          where: { email, password}
+        });
+        processOfLogin(req, res, result);
+          
       } else {
-        Users.findOne({
+        const result = await Users.findOne({
           where: { uuid }
-        })
-        .then((result) => {
-          if(!result) {
-            res.status(401).send('Login Failed');
-          } else {
-            delete result.dataValues.password;
-            const accessToken = generateAccessToken(result.dataValues.uuid);
-            const refreshToken = generateRefreshToken(result.dataValues.uuid);
-            req.session.save( () => {
-              req.session.userId = result.dataValues.uuid;
-              res.cookie('refreshToken', refreshToken);
-              res.status(200).send({
-                data: {
-                  accessToken,
-                  username: result.dataValues.username
-                },
-                message: 'Login Successfully'
-              });
-            });
-          }
-      })
+        });
+        processOfLogin(req, res, result);
     }      
   } else {
+    //! API문서에서 추가된 사실 알려줄 것 
     //*로그인이 된 경우
-    res.status(409).send('Already login');
+    console.log("로그인한게 맞는 지 확인: ", req.session.userId);
+    res.status(409).send('Already logged In');
   }
 },
  //* 소셜로그인 할 때 프론트에서 authorizationCode를 전송해주면 accessToken을 깃허브로부터 받아서 전송해준다
+ //! API문서에 추가가 안되어 있음 
   getTokenController: (req, res) => { 
     axios({
-      method: "post",
-      url: "https://github.com/login/oauth/access_token",
+      method: 'post',
+      url: 'https://github.com/login/oauth/access_token',
       headers: {
-        accept: "application/json",
+        accept: 'application/json',
       },
       data: {
-        client_id: `75d98169bb09be4ab543`,
-        client_secret: `4f2722a9eccf0a07b2b8670c5727e88b865ad9fe`,
+        client_id: `${clientID}`,
+        client_secret: `${clientSecret}`,
         code: req.body.authorizationCode
       }
     })
     .then((result) => {
       const accessToken = result.data.access_token;
-      const refreshToken = result.data.refresh_token;
+      //! github accessToken도 data에 그대로 보내는 지 확인!
+      res.setHeader('Authorization', `Bearer ${accessToken}`);
       res.status(200).send({
-        data: {
-          accessToken,
-          refreshToken,
-        },
+        message: 'ok'
       });
     })
     .catch((err) => {
-      res.status(404).send(err);
+      res.status(501).send({
+        message: 'failed'
+      });
     })
   },
 
@@ -190,31 +148,34 @@ module.exports = {
     })
     .then((result) => {
       if(!result) {
-        res.status(404).send('Not our client');
+        res.status(404).send('not our user');
       } else {
         res.status(202).send({
           data: {
             uuid: result.dataValues.uuid
           },
-          message: 'recollect user'
+          message: 'ok'
         })
       } 
     })
+    //! API문서 추가해준거 알려줄 것 
     .catch((err) => {
-      res.status(500).send(err);
+      res.status(500).send({
+        message: 'failed'
+      });
     })
     },
-
   //* 로그아웃 컨트롤러
   logoutController: (req, res) => {
-    if(!req.headers.Authorization) {
+    const accessTokenData = isAuthorized(req);
+    if(!accessTokenData) {
       res.status(403).send({
         message:'invalid access token'
       });
     } else {
       req.session.destroy();
       res.status(205).send({
-        message: "Log out Succeeded"
+        message: "Log Out Successfully"
       });
     }
   },
