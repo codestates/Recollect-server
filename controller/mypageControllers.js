@@ -136,7 +136,7 @@ module.exports =  {
     }
   },
   //* Bookmark 수정 요청(PUT "/mypage")
-  updateBookmarkController: async(req, res) => {
+  updateBookmarkController: (req, res) => {
     const { bookmarkId, desc, url, emoji } = req.body;
     console.log("길이확인", emoji.length);
     const emojiArr = emoji.split(',');
@@ -146,13 +146,15 @@ module.exports =  {
         message: 'Not Allowed'
       })
     } else {
-      const updateBookmark = Bookmarks.update({
+      const updateBookmark = (async() => {
+        Bookmarks.update({
         url: url,
         descrip: desc
-      }, {
-        where: {
+        }, {
+          where: {
           id: bookmarkId
-        }
+          }
+        })
       });
       const insertData = (async(id) => {
         await Bookmark_Emojis.create({
@@ -160,19 +162,21 @@ module.exports =  {
           emojiId: id
         })
       });
-      const deleteEmojiChains = Bookmark_Emojis.destroy({
-        where: { bookmarkId: bookmarkId }
+      const deleteEmojiChains = (async()=> {
+        Bookmark_Emojis.destroy({
+          where: { bookmarkId: bookmarkId }
+        })
       });
-      const updateEmojis = await Promise.all(
+      const updateEmojis = Promise.all(
         emojiArr.map( (id) => {
           return insertData(id);
         })
       );
       if( emoji.length === 0 ){
         console.log('정확한 위치가 어디인지 확인하세요');
-        await updateBookmark(url, desc, bookmarkId)
+        updateBookmark(url, desc, bookmarkId)
         .then((result) => {
-          res.status(200).send({
+          return res.status(200).send({
             message: 'Edited Successfully'
           });
         })
@@ -185,7 +189,7 @@ module.exports =  {
         return;
       } else {
         Promise
-        .all([updateBookmark,,deleteEmojiChains,updateEmojis])
+        .all([updateBookmark,deleteEmojiChains,updateEmojis])
         .then(() => {
           res.status(200).send({
             message: 'Edited Successfully'
