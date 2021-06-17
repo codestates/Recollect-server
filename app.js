@@ -1,8 +1,8 @@
 const express = require("express");
 const session = require("express-session");
 const cookieParser = require("cookie-parser");
-const https = require('https');
-const fs = require('fs');
+const fs = require("fs");
+const https = require("https");
 const cors = require("cors");
 const logger = require("morgan");
 const dotenv = require("dotenv");
@@ -29,6 +29,7 @@ app.use(
     secret: "@collecting",
     resave: false,
     saveUninitialized: true,
+    unset: 'keep',
     cookie: {
       sameSite: 'none',
       maxAge: 24 * 6 * 60 * 10000,

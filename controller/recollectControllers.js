@@ -8,7 +8,7 @@ const { isAuthorized } = require('../controller/tokenControllers');
 module.exports = {
   getRecollectController: async(req, res) => {
     const  uuid  = req.session.userId;
-    console.log("uuid를 확인해봅니다", req.session);
+    console.log("-------리프레쉬토큰요청받음---------");
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
       res.status(401).send({

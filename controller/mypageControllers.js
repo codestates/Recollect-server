@@ -39,7 +39,7 @@ module.exports =  {
         res.status(200).send({
           data: {
             user,
-            bookmark: metadata
+            bookmark: metadata,
           }
         })
       })
@@ -53,6 +53,7 @@ module.exports =  {
   },
   //* bookmark 추가하는 작업(POST "/mypage")
   collectController: async(req, res) => {
+    console.log('----북마크를 추가하는 부분 req확인-----', req.body);
     const {username, desc, url, emoji } = req.body;
     const emojiArr = emoji.split('');
     const accessTokenData = isAuthorized(req);
