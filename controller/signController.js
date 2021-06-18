@@ -24,11 +24,11 @@ const processOfLogin = (req, res, result) => {
     delete result.dataValues.password;
     const accessToken = generateAccessToken(result.dataValues)
     const refreshToken = generateRefreshToken(result.dataValues);
-    console.log(accessToken);
+    console.log('세션설정값확인', result.dataValues.uuid);
     req.session.save(()=>{
       req.session.userId = result.dataValues.uuid;
       res.setHeader('Authorization', `Bearer ${accessToken}`);
-      res.cookie('refreshToken', refreshToken, {httpOnly: true, maxAge: 24 * 6 * 60 * 10000,secure: true, sameSite:'none'});
+      res.cookie('refreshToken', refreshToken, { httpOnly: true, maxAge: 24 * 6 * 60 * 10000, secure: true, sameSite:'none' });
       res.status(200).send({
         data: {
           username: result.dataValues.username
@@ -57,6 +57,7 @@ const processOfSignUp = (res, result, created) => {
 module.exports = {
   //*회원가입컨트롤러
   signUpController: async (req, res) => {
+    console.log(req.body.socialId);
     const { isSocialAccount, password, email, username } = req.body;
     const  socialId  = req.body.socialId;
     if(isSocialAccount === 1) {
