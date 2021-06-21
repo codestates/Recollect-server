@@ -22,14 +22,14 @@ module.exports = {
             user: result.dataValues
           },
           message: 'Load Profile'
-        })
+        });
       })
       .catch((err) => {
         console.error(err);
         res.status(500).send({
           message: 'failed'
-        })
-      })
+        });
+      });
     }
   },
   //* PATCH '/profile'
@@ -40,7 +40,7 @@ module.exports = {
     if(!accessTokenData) {
       res.status(401).send({
         message: 'not allowed'
-      })
+      });
     } else {
       //* password 값의 존재 여부에 따라서 update 필드 작업이 다름 
       password !== undefined ? (
@@ -53,13 +53,13 @@ module.exports = {
         .then((result) => {
           res.status(200).send({
             message: 'Edited Successfully'
-          })
+          });
         })
         .catch((err) => {
           console.error(err);
           res.status(501).send({
             message: 'Failed To Edit'
-          })
+          });
         })
       ) : (
         await Users.update({
@@ -70,17 +70,15 @@ module.exports = {
         .then((result) => {
           res.status(200).send({
             message: 'Edited Successfully'
-          })
+          });
         })
         .catch((err) => {
           console.error(err);
           res.status(501).send({
             message: 'Failed To Edit'
-          })
+          });
         })
-      )
-      
-    
+      );
     }
   },
   //* DELETE '/profile'
@@ -91,7 +89,7 @@ module.exports = {
     if(!accessTokenData) {
       res.status(401).send({
         message: 'not allowed'
-      })
+      });
     } else {
       await Users.destroy({
         where: { uuid }
@@ -99,14 +97,14 @@ module.exports = {
       .then(() => {
         res.status(200).send({
           message: 'Deleted Successfully'
-        })
+        });
       })
       .catch(() => {
         res.status(501).send({
           message: 'Failed To Delete'
-        })
-      })
+        });
+      });
     }
   }
-}
+};
 

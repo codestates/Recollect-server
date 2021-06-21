@@ -10,8 +10,6 @@ const {
 module.exports =  {
   //* 회원이 갖고 있는 Bookmark정보를 전달(GET "/mypage")
   renderingController: async(req, res) => {
-    console.log('세션로그확인', req.session);
-    console.log('check', req)
     const uuid = req.session.userId;
     const accessTokenData = isAuthorized(req);
     if(!accessTokenData) {
@@ -41,19 +39,18 @@ module.exports =  {
             user,
             bookmark: metadata,
           }
-        })
+        });
       })
       .catch((err) => {
         console.error(err);
         res.status(500).send({
           message: 'failed'
-        })
-      })
+        });
+      });
     }
   },
   //* bookmark 추가하는 작업(POST "/mypage")
   collectController: async(req, res) => {
-    console.log('----북마크를 추가하는 부분 req확인-----', req.body);
     const {username, desc, url, emoji } = req.body;
     const emojiArr = emoji.split('');
     const accessTokenData = isAuthorized(req);
@@ -81,7 +78,7 @@ module.exports =  {
             await Bookmark_Emojis.create({
               bookmarkId: bookmarkId,
               emojiId: id
-            })
+            });
           });
           await Promise.all(
             emojiArr.map( (id) => {
@@ -91,19 +88,17 @@ module.exports =  {
           .then(() => {
             res.status(201).send({
               message: 'Created Successfully'
-            })
+            });
           })
           .catch((err) => {
-            console.log('조인테이블에 데이터가 제대로 입력되지 않았습니다');
             res.status(501).send({
               message: 'Failed To Created'
-            })
-          })
+            });
+          });
       } else {
-        console.log('북마크 생성이 제대로 수행되지 않았습니다');
         res.status(501).send({
           message: 'Failed To Created'
-        })
+        });
       }
     }
   },
@@ -127,14 +122,14 @@ module.exports =  {
       .then(() => {
         return res.status(200).send({
           message: 'Deleted Successfully'
-        })
+        });
       })
       .catch((err) => {
         console.error(err);
         return res.status(501).send({
           message: 'Failed To Delete'
-        })
-      })
+        });
+      });
     }
   },
   //* Bookmark 수정 요청(PUT "/mypage")
@@ -146,7 +141,7 @@ module.exports =  {
     if(!accessTokenData) {
       return res.status(401).send({
         message: 'Not Allowed'
-      })
+      });
     } else {
       const updateBookmark = (async() => {
         Bookmarks.update({
@@ -156,18 +151,18 @@ module.exports =  {
           where: {
           id: bookmarkId
           }
-        })
+        });
       });
       const insertData = (async(id) => {
         await Bookmark_Emojis.create({
           bookmarkId: bookmarkId,
           emojiId: id
-        })
+        });
       });
       const deleteEmojiChains = (async()=> {
         Bookmark_Emojis.destroy({
           where: { bookmarkId: bookmarkId }
-        })
+        });
       });
       const updateEmojis = Promise.all(
         emojiArr.map( (id) => {
@@ -183,11 +178,10 @@ module.exports =  {
           });
         })
         .catch((err) => {
-          console.error(err);
           return res.status(501).send({
             message: 'Failed To Edit'
           });
-        })
+        });
         return;
       } else {
         Promise
@@ -195,14 +189,13 @@ module.exports =  {
         .then(() => {
           res.status(200).send({
             message: 'Edited Successfully'
-          })
+          });
         })
         .catch((err) => {
-          console.error(err);
           res.status(501).send({
             message: 'Failed To Edit'
-          })
-        })
+          });
+        });
       }
     } 
   },
@@ -224,10 +217,10 @@ module.exports =  {
       .catch((err) => {
         return res.status(501).send({
           message: 'Failed To Create'
-        })
-      })
+        });
+      });
     }
   }
-}
+};
 
 

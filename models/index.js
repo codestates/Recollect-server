@@ -15,9 +15,7 @@ fs
   })
   .forEach(function(file) {
     const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-    db[model.name] = model;
-    // ! 배포할 때 삭제 해야 함 
-    console.log('model.name:' + model.name);  
+    db[model.name] = model; 
   });
 
 Object.keys(db).forEach(function(modelName) {

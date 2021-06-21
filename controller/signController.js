@@ -1,7 +1,4 @@
 require("dotenv").config();
-const express = require('express');
-const jwt = require('jsonwebtoken');
-const router = express.Router();
 const uuid = require("uuid");
 const { Users } = require("../models");
 
@@ -22,9 +19,8 @@ const processOfLogin = (req, res, result) => {
     return res.status(401).send('Login Failed');
   } else {
     delete result.dataValues.password;
-    const accessToken = generateAccessToken(result.dataValues)
+    const accessToken = generateAccessToken(result.dataValues);
     const refreshToken = generateRefreshToken(result.dataValues);
-    console.log('세션설정값확인', result.dataValues.uuid);
     req.session.save(()=>{
       req.session.userId = result.dataValues.uuid;
       res.setHeader('Authorization', `Bearer ${accessToken}`);
@@ -37,7 +33,7 @@ const processOfLogin = (req, res, result) => {
       });
     });
   }
-}
+};
 
 const processOfSignUp = (res, result, created) => {
   if(!created) {
@@ -50,14 +46,13 @@ const processOfSignUp = (res, result, created) => {
         userInfo: result.dataValues
       },
       message: 'Sign Up Successfully'
-    })
+    });
   }
 };
 
 module.exports = {
   //*회원가입컨트롤러
   signUpController: async (req, res) => {
-    console.log(req.body.socialId);
     const { isSocialAccount, password, email, username } = req.body;
     const  socialId  = req.body.socialId;
     if(isSocialAccount === 1) {
@@ -107,14 +102,12 @@ module.exports = {
   } else {
     //! API문서에서 추가된 사실 알려줄 것 
     //*로그인이 된 경우
-    console.log("로그인한게 맞는 지 확인: ", req.session.userId);
     res.status(409).send('Already logged In');
   }
 },
  //* 소셜로그인 할 때 프론트에서 authorizationCode를 전송해주면 accessToken을 깃허브로부터 받아서 전송해준다
  //! API문서에 추가가 안되어 있음 
   getTokenController: (req, res) => { 
-    console.log(req.body.authorizationCode);
     axios({
       method: 'post',
       url: 'https://github.com/login/oauth/access_token',
@@ -122,14 +115,13 @@ module.exports = {
         accept: 'application/json',
       },
       data: {
-        client_id: `749cea90f0ee8535f1fa`,
-        client_secret: `dd32ef6bef3293b42cde199d6a968bf3f5375200`,
+        client_id: `${clientID}`,
+        client_secret: `${clientSecret}`,
         code: req.body.authorizationCode
       }
     })
     .then((result) => {
       const accessToken = result.data.access_token;
-      console.log('확인', result);
       res.setHeader('Authorization', `Bearer ${accessToken}`);
       res.status(200).send({
         data: `${accessToken}`,
@@ -140,12 +132,11 @@ module.exports = {
       res.status(501).send({
         message: 'failed'
       });
-    })
+    });
   },
 
  //* 소셜로그인 한 유저가 회원인지 판별 컨트롤러(/logcheck)
   logCheckController: async(req, res) => {
-    console.log('확인용:',req.body);
     const { socialId } = req.body;
     await Users.findOne({
       where: { socialId },
@@ -159,7 +150,7 @@ module.exports = {
             uuid: result.dataValues.uuid
           },
           message: 'ok'
-        })
+        });
       } 
     })
     //! API문서 추가해준거 알려줄 것 
@@ -167,7 +158,7 @@ module.exports = {
       res.status(500).send({
         message: 'failed'
       });
-    })
+    });
     },
   //* 로그아웃 컨트롤러
   logoutController: (req, res) => {

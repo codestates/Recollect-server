@@ -11,7 +11,7 @@ const methodOverride = require('method-override');
 const routes = require("./routes/index");
 const { addVisitCountsController } = require('./controller/bookmarkController');
 const { updateBookmarkController } = require('./controller/mypageControllers');
-const {  editProfileController } = require('./controller/profileController');
+const { editProfileController } = require('./controller/profileController');
 
 dotenv.config();
 const PORT = process.env.PORT;
@@ -44,7 +44,7 @@ const corsOptions = {
   credentials: true,
   methods: ['GET','HEAD','PUT','PATCH','POST','DELETE', 'OPTIONS'],
   exposedHeaders: ['*', 'Authorization']
-}
+};
 app.use(cors(corsOptions));
 app.use(methodOverride('_method'));
 app.use(methodOverride('X-HTTP-Method-Override'));
@@ -54,7 +54,7 @@ app.use("/", routes);
 app.put('/bookmark', (req, res, next) => {
   addVisitCountsController (req, res);
 });
-app.put('/mypage', (req, res, next) => {
+app.put('/mypage', (req, res) => {
   updateBookmarkController(req, res);
 });
 app.patch('/profile', (req, res, next) => {
@@ -73,9 +73,13 @@ if (fs.existsSync("./key.pem") && fs.existsSync("./cert.pem")) {
       },
       app
     )
-    .listen(PORT);
+    .listen(PORT, () => {
+      console.log(`🚀 The server is running on the port ${PORT}`);
+    });
 } else {
-  server = app.listen(PORT)
+  server = app.listen(PORT, () => {
+    console.log(`🚀 The server is running on the port ${PORT}`);
+  });
 }
 
 module.exports = server;
